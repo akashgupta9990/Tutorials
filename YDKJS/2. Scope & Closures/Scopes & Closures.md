@@ -146,3 +146,77 @@
     So declaration of variable/function happened first irrespective of where it is defined.
     Only variables available in root scope are hoisted, if available inside function it will not be hoisted and will be declared at the time of execution of function.
     Function is hoisted first as compared to variable.
+
+ # Closures
+
+    ```js
+      function foo() {
+        var a = "foo scope";
+        var bar = function() {
+          console.log(a)
+        }
+        return bar;
+      }
+
+      var baz = foo();
+      baz() // Woila we got the scope of foo
+      // this is called closure
+    ```
+
+    Closure is something like we define some private level function and get access of it via return and accessed it, so outside world doesn't interfere with private level functions
+
+    Examples of loop
+    ```js
+      for (var i=1; i<=5; i++) {
+        (function(){
+          setTimeout( function timer(){
+            console.log( i );
+          }, i*1000 );
+        })();
+      }
+
+      for (var i=1; i<=5; i++) {
+        (function(i){
+          setTimeout( function timer(){
+            console.log( i );
+          }, i*1000 );
+        })(i);
+      }
+
+      for (let i=1; i<=5; i++) {
+        setTimeout( function timer(){
+          console.log( i );
+        }, i*1000 );
+      }
+    ```
+# Module
+
+  ```js
+    function CoolModule() {
+      var something = "cool";
+      var another = [1, 2, 3];
+      function doSomething() {
+        console.log( something );
+      }
+      function doAnother() {
+        console.log( another.join( " ! " ) );
+      }
+      return {
+        doSomething: doSomething,
+        doAnother: doAnother
+      };
+    }
+    var foo = CoolModule();
+    foo.doSomething(); // cool
+    foo.doAnother(); // 1 ! 2 ! 3
+  ```
+
+  This type of pattern is called Module in javascript
+
+    Es6 Modules
+    ```js
+      import "foo" from foo;
+      function bar(){}; 
+      export default bar;
+    ```
+    
