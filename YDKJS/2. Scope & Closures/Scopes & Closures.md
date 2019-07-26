@@ -219,4 +219,11 @@
       function bar(){}; 
       export default bar;
     ```
+  ## Note
+  Lexical scope cares where a function was declared, but dynamic scope cares where a function was called from.
+  For Eg for Dynamic scope -> Take example of this keyword.
+
+  ## Polyfilling
+    Converting ES6 Code to ES5;
+    A library provided by Google for this Traceur.
     
