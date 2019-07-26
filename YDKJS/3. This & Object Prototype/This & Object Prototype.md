@@ -113,4 +113,125 @@ a["[ObjectObject]"] // object
 ```
 
 # Arrays[]
-Adding data inside array using bracket notation will also increase its length if 
+Adding data inside array using bracket notation will also increase its length if bracket notation value is positive numerical number.
+But if bracket notation value is other than numeric it will not increase length.
+
+#Property Descriptors
+Define object
+```js
+var myObject = {};
+Object.defineProperty( myObject, "a", {
+    value: 2,
+    writable: true,
+    configurable: true,
+    enumerable: true
+});
+myObject.a // 2
+// To Get property descriptors we use getOwnPropertyDescriptor.
+Object.getOwnPropertyDescriptor( myObject, "a" );
+{
+    value: 2,
+    writable: true,
+    enumerable: true,
+    configurable: true
+}
+```
+## Writable
+    Ability to change the value of any object.
+    if true we can change the object property value else not.
+    In Non Strict Mode, while changing value it will silently fail but in strict mode it will throw error.
+
+## Configurable
+    Ability to change the descriptors values.
+    if true we can change the object property descriptors else not.
+    Note: Changing the configurable to false cannot be undone.
+    We can change writable can be changed from true to false but not vice versa
+    if false we cannot delete the object key using delete property
+
+## Enumerable
+    It will ignore the loop from iterating on that property if set to false.
+```js
+var myObject = { };
+Object.defineProperty(
+    myObject,
+    "a",
+    { enumerable: true, value: 2 } // make `a` enumerable, as normal
+);
+
+Object.defineProperty(
+    myObject,
+    "b",
+    { enumerable: false, value: 3 } // make `b` NON-enumerable
+);
+
+myObject.b; // 3
+("b" in myObject); // true
+myObject.hasOwnProperty( "b" ); // true
+
+for (var k in myObject) {
+    console.log( k, myObject[k] );
+}
+// "a" 2
+
+Object.keys( myObject ); // ["a"]
+Object.getOwnPropertyNames( myObject ); // ["a", "b"]
+```
+    To check if any object is enumerable or not we use Object.propertyIsEnumerable("key").
+
+## Immutability
+    This will make the object constant.
+    Note: Only first level data will be immutable.
+
+    Using both writable & configurable will make the key immutable(cannot be changed, redifined & deleted).
+
+### prevent Extensions
+```js
+var myObj = {a:2};
+Object.preventExtensions(myObj);
+myObject.b = 3;
+myObject.b; // undefined
+// In non strict mode it will fail silently but in Strict mode it will throw error.
+```
+
+### Seal
+Seal will not only add functionality of preventExtensions but also not allow to delete or reconfigure(have to check) existing data i.e configurable = false.
+```js
+Object.seal(myObj)
+```
+
+### freeze
+Freeze is inhertiance of seal + not allow to edit any file i.e writable = false
+```js
+Object.freeze(myObj);
+```
+
+# Internal [[Get]] & [[Set]]
+Calling myObj.a will call internal [[get]] function and find a, if not available return undefined.
+Similarly we use [[set]] to seta data(more on chapter 5)
+
+# Getter & Setter
+```js
+//Object literal syntax
+var myObject = {
+    get a() { // define a getter for `a`
+        return this._a_;
+    }
+};
+
+Explicit Definition
+Object.defineProperty(
+    myObject, // target
+    "a", { // property name
+        set: function(val){ this._a_ =  val * 2}, // define a getter for `b`
+        enumerable: true // make sure `b` shows up as an object property
+    }
+);
+
+myObject.a = 2;
+myObject.a; // 4
+```
+
+# Existence
+To check if any object have any key available we use hasOwnProperty.
+```js
+myObj.hasOwnProperty("a")
