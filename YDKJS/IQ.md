@@ -41,3 +41,7 @@ var p = { a: 4 };
 o.foo(); // 3
 (p.foo = o.foo)();
 ```
+
+# Undefined vs Undeclared
+Undefined is declared but value is not assigned and when on console give undefined.
+Undeclared is not declared & will give reference error on console.

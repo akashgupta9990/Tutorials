@@ -209,7 +209,7 @@ Object.freeze(myObj);
 Calling myObj.a will call internal [[get]] function and find a, if not available return undefined.
 Similarly we use [[set]] to seta data(more on chapter 5)
 
-# Getter & Setter
+# Getter & Setter(Javascript/data accessors)
 ```js
 //Object literal syntax
 var myObject = {
@@ -235,3 +235,142 @@ myObject.a; // 4
 To check if any object have any key available we use hasOwnProperty.
 ```js
 myObj.hasOwnProperty("a")
+```
+
+# Shadowing
+## Implicit Shadowing
+```js
+var anotherObject = {
+    a: 2
+};
+var myObject = Object.create( anotherObject );
+anotherObject.a; // 2
+myObject.a; // 2
+anotherObject.hasOwnProperty( "a" ); // true
+myObject.hasOwnProperty( "a" ); // false
+myObject.a++; // oops, implicit shadowing!
+anotherObject.a; // 2
+myObject.a; // 3
+myObject.hasOwnProperty( "a" ); // true
+```
+
+# Prototype
+Pre ES6 to inherit any prototype to another object we use
+```js
+Bar.prototype = Object.create(Foo.prototype) // This will discard initial Bar.prototype data and inherit Foo.prototype
+```
+
+After ES6 it introduce new way to inherit prototype
+```js
+Object.setPrototypeOf( Bar.prototype, Foo.prototype ); // This will modify the Bar.prototype value with additional data of Foo.prorotype
+```
+
+__proto__ is called as dunder proto.
+
+# Object.create pollyfill
+```js
+var anotherObject = {
+    a: 2
+};
+var myObject = Object.create( anotherObject, {
+    b: {
+        enumerable: false,
+        writable: true,
+        configurable: false,
+        value: 3
+    },
+    c: {
+        enumerable: true,
+        writable: false,
+        configurable: false,
+        value: 4
+    }
+});
+myObject.hasOwnProperty( "a" ); // false
+myObject.hasOwnProperty( "b" ); // true
+myObject.hasOwnProperty( "c" ); // true
+myObject.a; // 2
+myObject.b; // 3
+myObject.c; // 4
+```
+
+# Class Design Pattern
+```js
+class Task {
+    id;
+    // constructor `Task()`
+    Task(ID) { id = ID; }
+    outputTask() { output( id ); } // Parent Function
+}
+class XYZ inherits Task {
+    label;
+    // constructor `XYZ()`
+    XYZ(ID,Label) { super( ID ); label = Label; }
+    outputTask() { super(); output( label ); } // Overriding parent function by giving same name
+}
+```
+
+# Behaviour Delegation, Delegation Theory(Object Linked to Other Objects<OLOO>)
+Use Objects instead of classes and inherits parent object using delegation.
+```js
+Task = {
+    setID: function(ID) { this.id = ID; },
+    outputID: function() { console.log( this.id ); } // parent function
+};
+// make `XYZ` delegate to `Task`
+XYZ = Object.create( Task );
+XYZ.prepareTask = function(ID,Label) { // Inheriting parent function and adding additional functionalities
+    this.setID( ID );
+    this.label = Label;
+};
+XYZ.outputTaskDetails = function() {
+    this.outputID();
+    console.log( this.label );
+};
+```
+
+Note: Check comment of parent function overriding & inheriting in class & delegation.
+
+# Delegation Vs OO Code
+## OO
+```js
+function Foo(who) {
+    this.me = who;
+}
+Foo.prototype.identify = function() {
+    return "I am " + this.me;
+};
+function Bar(who) {
+    Foo.call( this, who );
+}
+Bar.prototype = Object.create( Foo.prototype );
+Bar.prototype.speak = function() {
+    alert( "Hello, " + this.identify() + "." );
+};
+var b1 = new Bar( "b1" );
+var b2 = new Bar( "b2" );
+b1.speak();
+b2.speak();
+```
+
+## OLOO
+```js
+Foo = {
+    init: function(who) {
+        this.me = who;
+    },
+    identify: function() {
+        return "I am " + this.me;
+    }
+};
+Bar = Object.create( Foo );
+Bar.speak = function() {
+    alert( "Hello, " + this.identify() + "." );
+};
+var b1 = Object.create( Bar );
+b1.init( "b1" );
+var b2 = Object.create( Bar );
+b2.init( "b2" );
+b1.speak();
+b2.speak();
+```
