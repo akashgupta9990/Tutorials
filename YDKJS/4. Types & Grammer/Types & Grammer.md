@@ -163,7 +163,7 @@ Object.prototype.toString.call( a ); // "[object String]" (type, instance)
 
 ## Boxing Wrappers
 primitive value doesn't have any property/function.
-While using them JS automatically add a type wrapper so we can use their properties.
+While using them, JS automatically add a type wrapper so we can use their properties.
 
 ```js
 var a = "abc";
@@ -172,3 +172,197 @@ a.toUpperCase(); //"ABC"
 ```
 
 Explicitly adding wrapper decrease performance
+
+## Unboxing Wrappers
+we can use valueOf function to get primitive value.
+```js
+var a = "abc";
+a.valueOf() // "abc"
+```
+
+## Native as constructors
+### Arrays
+```js
+var a = new Array(3);
+var b = [undefined, undefined, undefined];
+var c = []; c.length = 3;
+
+a // (3) [empty × 3]
+b // [undefined, undefined, undefined]
+c // (3) [empty × 3]
+```
+
+creating a & c will create array with 3 empty slots i.e it has 3 slots but empty
+creating b will create array with 3 slots with undefined value.
+
+```js
+a.join("-") // "--"
+b.join("-") // "--"
+a.map(function(v,i){ return i; }); // [ undefined x 3 ]
+b.map(function(v,i){ return i; }); // [ 0, 1, 2 ]
+Array.apply( null, { length: 3 } ); // [undefined, undefined, undefined]
+```
+
+join and map works differently
+map will iterate on elem not length property but var a has no element so it doesn't have anything to iterate.
+
+### Date 
+```js
+var date = new Date(); // current date
+date.getTime(); // 1567577305366
+// this will print no of sec since Jan 1 1970
+new Date(1567577305366) // Wed Sep 04 2019 11:38:25 GMT+0530 (India Standard Time)
+```
+
+### Error
+It will capture the error stack so we will know the flow and where that error happened.
+
+
+# Coercion
+Two types of coercion
+1. type casting - basically happened at compile time
+2. type coercion - happened at runtime
+
+Implicit Coercion - Happen automatically
+Explicit Coercion - Happen from user side
+```js
+var a = 1;
+var b = "b" + a; // a value(Number type 1) will be converted to String 1("1") Implicit coercion
+var c = "c" + String(a); // Explicit coercion
+```
+
+## JSON Stringify
+It will convert everything to string i.e 5 to "5" etc.
+For undefined & empty function it will convert to null
+```js
+JSON.stringify( undefined ); // undefined
+JSON.stringify( function(){} ); // undefined
+JSON.stringify([1,undefined,function(){},4]); // "[1,null,null,4]"
+JSON.stringify({ a:2, b:function(){} }); // "{"a":2}"
+```
+
+###  toJSON
+It will call .toJSON function first if available to serialize the data.
+```js
+var o = { };
+var a = {
+    b: 42,
+    c: o,
+    d: function(){}
+};
+// create a circular reference inside `a`
+o.e = a;
+// would throw an error on the circular reference
+// JSON.stringify( a );
+// define a custom JSON value serialization
+a.toJSON = function() {
+    // only include the `b` property for serialization
+    return { b: this.b };
+};
+JSON.stringify( a ); // "{"b":42}"
+```
+
+It is not compulsary that .toJSON will return json everytime.
+```js
+var a = {
+    val: [1,2,3],
+    // probably correct!
+    toJSON: function(){
+        return this.val.slice( 1 );
+    }
+};
+var b = {
+    val: [1,2,3],
+    // probably incorrect!
+    toJSON: function(){
+        return "[" + this.val.slice( 1 ).join() + "]";
+    }
+};
+JSON.stringify( a ); // "[2,3]"
+JSON.stringify( b ); // ""[2,3]""
+```
+
+### Reducer
+JSON.stringify accepts a second parameter (a function or an array(contains key to show)) which will skip the stringification of key, value which retun false in reducer.
+```js
+var a = {
+    b: 42,
+    c: "42",
+    d: [1,2,3]
+};
+JSON.stringify( a, ["b","c"] ); // "{"b":42,"c":"42"}" passed array as reducer
+JSON.stringify( a, function(k,v) {
+    if (k !== "c") return v;
+}); // passed function
+// "{"b":42,"d":[1,2,3]}"
+```
+
+### Third parameter
+Third parameter is for spacing, positive value add that many space while string will append to the key.
+```js
+var a = {
+    b: 42,
+    c: "42",
+    d: [1,2,3]
+};
+JSON.stringify( a, null, 3 );
+/*
+"{
+   "b": 42,
+   "c": "42",
+   "d": [
+        1,
+        2,
+        3
+    ]
+}"
+*/
+JSON.stringify(a, null, "-----")
+/*
+"{
+ -----"b": 42,
+ -----"c": "42",
+ -----"d": [
+ ----------1,
+ ----------2,
+ ----------3
+ -----]
+}"
+*/
+```
+
+# toNumber
+It will convert any value to number format
+True will be 1
+False will be 0
+undefined will be NaN
+But null will be 0(wierd)
+
+Object with number will first convert to primitive value(Not number format) & then coerced to number format.
+First it will call toValue() to get number if not available it will call toString() and get Primitive value then coerce that value.
+
+# toBoolean
+In JS true, false(Boolean) are different tham 0,1(Number)
+But 0,1 will coerce to true & false
+
+Some js 
+
+# ~(Blitwise operator)
+~42 // -43
+
+it is equal to -(42+1).
+-1 is sentinal value
+Blitwise will change the truth condition to false or vice versa
+Using ~~ will give the same value as the input value
+```js
+var a = "Hello World";
+~a.indexOf( "lo" ); // -4 <-- truthy!
+if (~a.indexOf( "lo" )) { // true
+// found it!
+}
+~a.indexOf( "ol" ); // 0 <-- falsy!
+!~a.indexOf( "ol" ); // true
+if (!~a.indexOf( "ol" )) { // true
+// not found!
+}
+```
